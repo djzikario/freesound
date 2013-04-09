@@ -542,12 +542,10 @@ class SoundHandler(BaseHandler):
     #@keyAuth()
     def read(self, request, sound_id):
 
-
-
         try:
             sound = Sound.objects.select_related('geotag', 'user', 'license', 'tags').get(id=sound_id, moderation_state="OK", processing_state="OK")
         except Sound.DoesNotExist: #@UndefinedVariable
-            raise ReturnError(404, "NotFound", {"explanation": "Sound with id %s does not exist." % sound_id})
+            raise ReturnError(404, "NotFound", {"explanation": "Sound with id %s does not exist." % sound_id}, request)
             #return build_error_response(ReturnError(404, "NotFound", {"explanation": "Sound with id %s does not exist." % sound_id}),request)
 
         result = prepare_single_sound(sound)

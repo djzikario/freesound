@@ -25,10 +25,9 @@ from handlers import *
 from views import create_api_key
 from api_utils import build_invalid_url, MyKeyAuth, build_error_response
 
-### TODO
-# make Api respond when raise "ReturnError" is thrown and in general any Exception (unexpeced error)
-# Not sure where this should be, but it sould be common in both authentication methods
 
+
+## TODO: que passa amb les exceptions
 
 # Key-based authentication resources
 myKeyAuth = MyKeyAuth()
@@ -37,7 +36,15 @@ class KeyAuthentication(Resource):
         super(KeyAuthentication, self).__init__(authentication=myKeyAuth, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        response = super(KeyAuthentication, self).__call__(*args, **kwargs)
+        try:
+            response = super(KeyAuthentication, self).__call__(*args, **kwargs)
+        except Exception, e:
+            print "HEYHEY"
+        #except ReturnError, e:
+        #    return build_error_response(e)
+        #except Exception, e:
+        #    return build_error_response(e)
+
         response['Access-Control-Allow-Origin'] = '*'
         return response
 
@@ -100,6 +107,6 @@ urlpatterns += patterns(
 # anything else (invalid urls)
 urlpatterns += patterns(
     '',
-    url(r'/$', build_invalid_url ),
+    url(r'/$', build_invalid_url),
 )
 

@@ -30,14 +30,14 @@ logger = logging.getLogger("api")
 
 
 class ReturnError(Exception):
-    def __init__(self, status_code, type, extra):
+    def __init__(self, status_code, type, extra, request):
         self.status_code = status_code
         self.type = type
         self.extra = extra
+        self.request = request
 
+def build_error_response(e):
 
-def build_error_response(e, request):
-    
     #logger.error(str(e.status_code) + ' API error: ' + e.type)
     content = {"error": True,
                "type": e.type,
@@ -45,45 +45,40 @@ def build_error_response(e, request):
                "explanation": ""}
     content.update(e.extra)
     response = rc.BAD_REQUEST
-    response_format = request.GET.get("format", "json")
+    response_format = e.request.GET.get("format", "json")
     em_info = Emitter.get(response_format)
     RequestEmitter = em_info[0]
     emitter = RequestEmitter(content, typemapper, "", "", False)
-    response.content = emitter.render(request)
+    response.content = emitter.render(e.request)
     response['Content-Type'] = em_info[1]
 
     return response
-    
 
-'''
-def build_unexpected(e, request):
+
+def create_unexpected_error(e, request):
     debug = traceback.format_exc() if settings.DEBUG else str(e)
     logger.error('500 API error: Unexpected')
-    
-    return build_error_response(ReturnError(500,
-                                            "InternalError",
-                                            {"explanation":
-                                             "An internal Freesound error ocurred.",
-                                             "really_really_sorry": True,
-                                             "debug": debug}
-                                             ), request)
-'''
+    return ReturnError(500,
+                       "InternalError",
+                       {"explanation":
+                        "An internal Freesound error ocurred.",
+                        "really_really_sorry": True,
+                        "debug": debug
+                       }, request)
 
-def build_invalid_url(e):
-    format = e.GET.get("format", "json")
+
+def build_invalid_url(request):
     logger.error('404 API error: Invalid Url')
-    
     return build_error_response(ReturnError(404,
                                             "InvalidUrl",
                                             {"explanation":
-                                             "The introduced url is invalid.",}
-                                             ), e)
+                                             "The introduced url is invalid.",},
+                                            request))
 
 
 class MyKeyAuth(object):
 
     def is_authenticated(self, request):
-        self.request_aux = request
 
         try:
             # Try to get the api key
@@ -92,7 +87,8 @@ class MyKeyAuth(object):
 
                 logger.error('401 API error: Authentication error (no api key supplied)')
                 self.error = ReturnError(401, "AuthenticationError",
-                                         {"explanation":  "Please include your api key as the api_key GET parameter"})
+                                         {"explanation":  "Please include your api key as the api_key GET parameter"},
+                                         request)
                 return False
 
             try:
@@ -101,24 +97,19 @@ class MyKeyAuth(object):
             except ApiKey.DoesNotExist:
                 logger.error('401 API error: Authentication error (wrong api key)')
                 self.error = ReturnError(401, "AuthenticationError",
-                                         {"explanation":  "Supplied api_key does not exist"})
+                                         {"explanation":  "Supplied api_key does not exist"},
+                                         request)
                 return False
 
             request.user = db_api_key.user
             return True
 
         except Exception, e:
-            logger.error('500 API error: Unexpected')
-            debug = traceback.format_exc() if settings.DEBUG else str(e)
-            self.error = ReturnError(500,
-                                     "InternalError",
-                                     {"explanation": "An internal Freesound error ocurred.",
-                                     "really_really_sorry": True,
-                                     "debug": debug})
+            self.error = create_unexpected_error(e, request)
             return False
 
     def challenge(self):
-        return build_error_response(self.error, self.request_aux)
+        return build_error_response(self.error)
 
 
 '''
