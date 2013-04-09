@@ -28,6 +28,14 @@ import logging
 
 logger = logging.getLogger("api")
 
+
+class ReturnError(Exception):
+    def __init__(self, status_code, type, extra):
+        self.status_code = status_code
+        self.type = type
+        self.extra = extra
+
+
 def build_error_response(e, request):
     
     #logger.error(str(e.status_code) + ' API error: ' + e.type)
@@ -37,9 +45,8 @@ def build_error_response(e, request):
                "explanation": ""}
     content.update(e.extra)
     response = rc.BAD_REQUEST
-    format = request.GET.get("format", "json")
-    
-    em_info = Emitter.get(format)
+    response_format = request.GET.get("format", "json")
+    em_info = Emitter.get(response_format)
     RequestEmitter = em_info[0]
     emitter = RequestEmitter(content, typemapper, "", "", False)
     response.content = emitter.render(request)
@@ -48,12 +55,7 @@ def build_error_response(e, request):
     return response
     
 
-class ReturnError(Exception):
-    def __init__(self, status_code, type, extra):
-        self.status_code = status_code
-        self.type = type
-        self.extra = extra
-
+'''
 def build_unexpected(e, request):
     debug = traceback.format_exc() if settings.DEBUG else str(e)
     logger.error('500 API error: Unexpected')
@@ -65,6 +67,7 @@ def build_unexpected(e, request):
                                              "really_really_sorry": True,
                                              "debug": debug}
                                              ), request)
+'''
 
 def build_invalid_url(e):
     format = e.GET.get("format", "json")
@@ -76,7 +79,50 @@ def build_invalid_url(e):
                                              "The introduced url is invalid.",}
                                              ), e)
 
-class auth():
+
+class MyKeyAuth(object):
+
+    def is_authenticated(self, request):
+        self.request_aux = request
+
+        try:
+            # Try to get the api key
+            api_key = request.GET.get('api_key', False)
+            if not api_key:
+
+                logger.error('401 API error: Authentication error (no api key supplied)')
+                self.error = ReturnError(401, "AuthenticationError",
+                                         {"explanation":  "Please include your api key as the api_key GET parameter"})
+                return False
+
+            try:
+                db_api_key = ApiKey.objects.get(key=api_key, status='OK')
+
+            except ApiKey.DoesNotExist:
+                logger.error('401 API error: Authentication error (wrong api key)')
+                self.error = ReturnError(401, "AuthenticationError",
+                                         {"explanation":  "Supplied api_key does not exist"})
+                return False
+
+            request.user = db_api_key.user
+            return True
+
+        except Exception, e:
+            logger.error('500 API error: Unexpected')
+            debug = traceback.format_exc() if settings.DEBUG else str(e)
+            self.error = ReturnError(500,
+                                     "InternalError",
+                                     {"explanation": "An internal Freesound error ocurred.",
+                                     "really_really_sorry": True,
+                                     "debug": debug})
+            return False
+
+    def challenge(self):
+        return build_error_response(self.error, self.request_aux)
+
+
+'''
+class keyAuth():
 
     def __init__(self, get_parameter='api_key'): # FROM FREESOUND
         self.get_parameter = get_parameter
@@ -113,3 +159,5 @@ class auth():
                 return build_unexpected(e, request)
 
         return decorated_api_func
+
+'''

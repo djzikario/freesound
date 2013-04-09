@@ -22,6 +22,8 @@
 
 from django.contrib import admin
 from api.models import ApiKey
+from piston.models import Nonce, Consumer, Token
+
 
 class ApiKeyAdmin(admin.ModelAdmin):
     raw_id_fields = ('user',) 
@@ -30,3 +32,7 @@ class ApiKeyAdmin(admin.ModelAdmin):
     list_display = ("key", "user", "status")
 
 admin.site.register(ApiKey, ApiKeyAdmin)
+
+admin.site.register(Consumer)
+admin.site.register(Nonce)
+admin.site.register(Token)

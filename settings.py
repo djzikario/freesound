@@ -57,6 +57,7 @@ INSTALLED_APPS = (
     'bookmarks',
     'forum',
     'search',
+    'piston',
     'api',
     'django_extensions',
     'tickets',

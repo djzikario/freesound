@@ -20,42 +20,65 @@
 
 from django.conf.urls.defaults import *
 from piston.resource import Resource
+from piston.authentication import OAuthAuthentication
 from handlers import *
 from views import create_api_key
-from api_utils import build_invalid_url
+from api_utils import build_invalid_url, MyKeyAuth, build_error_response
+
+### TODO
+# make Api respond when raise "ReturnError" is thrown and in general any Exception (unexpeced error)
+# Not sure where this should be, but it sould be common in both authentication methods
+
 
 # Key-based authentication resources
-class AR(Resource):
+myKeyAuth = MyKeyAuth()
+class KeyAuthentication(Resource):
+    def __init__(self, *args, **kwargs):
+        super(KeyAuthentication, self).__init__(authentication=myKeyAuth, *args, **kwargs)
+
     def __call__(self, *args, **kwargs):
-        response = super(AR, self).__call__(*args, **kwargs)
+        response = super(KeyAuthentication, self).__call__(*args, **kwargs)
         response['Access-Control-Allow-Origin'] = '*'
         return response
 
+# Three legged authentication
+threeLeggedAuth = OAuthAuthentication(realm='api')
+class ThreeLeggedAuth(Resource):
+    def __init__(self, *args, **kwargs):
+        super(ThreeLeggedAuth, self).__init__(authentication=threeLeggedAuth, *args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        response = super(ThreeLeggedAuth, self).__call__(*args, **kwargs)
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+
+
 urlpatterns = patterns('',
     # sounds
-    url(r'^sounds/search/$',                                        AR(SoundSearchHandler),         name='api-search'),
-    url(r'^sounds/content_search/$',                                AR(SoundContentSearchHandler),  name='api-content-search'),
-    url(r'^sounds/(?P<sound_id>\d+)/$',                             AR(SoundHandler),               name='api-single-sound'),
-    url(r'^sounds/(?P<sound_id>\d+)/analysis/$',                    AR(SoundAnalysisHandler),       name='api-sound-analysis'),
-    url(r'^sounds/(?P<sound_id>\d+)/analysis(?P<filter>/[\w\/]+)/$',AR(SoundAnalysisHandler),       name='api-sound-analysis-filtered'),
+    url(r'^sounds/search/$',                                        KeyAuthentication(SoundSearchHandler),         name='api-search'),
+    url(r'^sounds/content_search/$',                                KeyAuthentication(SoundContentSearchHandler),  name='api-content-search'),
+    url(r'^sounds/(?P<sound_id>\d+)/$',                             KeyAuthentication(SoundHandler),               name='api-single-sound'),
+    url(r'^sounds_2/(?P<sound_id>\d+)/$',                           ThreeLeggedAuth(SoundHandlerTEST),             name='api-single-sound-three-legged'),
+    url(r'^sounds/(?P<sound_id>\d+)/analysis/$',                    KeyAuthentication(SoundAnalysisHandler),       name='api-sound-analysis'),
+    url(r'^sounds/(?P<sound_id>\d+)/analysis(?P<filter>/[\w\/]+)/$',KeyAuthentication(SoundAnalysisHandler),       name='api-sound-analysis-filtered'),
     # For future use (when we serve analysis files through autenthication)
-    #url(r'^sounds/(?P<sound_id>\d+)/analysis_frames/$',            AR(SoundAnalysisFramesHandler), name='api-sound-analysis-frames'),
-    url(r'^sounds/(?P<sound_id>\d+)/serve/$',                       AR(SoundServeHandler),          name='api-sound-serve'),
-    url(r'^sounds/(?P<sound_id>\d+)/similar/$',                     AR(SoundSimilarityHandler),     name='api-sound-similarity'),
-    url(r'^sounds/geotag/$',                                        AR(SoundGeotagHandler),         name='api-sound-geotag'),
+    #url(r'^sounds/(?P<sound_id>\d+)/analysis_frames/$',            KeyAuthentication(SoundAnalysisFramesHandler), name='api-sound-analysis-frames'),
+    #url(r'^sounds/(?P<sound_id>\d+)/serve/$',                       ThreeLeggedAuth(SoundServeHandler),           name='api-sound-serve'),
+    url(r'^sounds/(?P<sound_id>\d+)/similar/$',                     KeyAuthentication(SoundSimilarityHandler),     name='api-sound-similarity'),
+    url(r'^sounds/geotag/$',                                        KeyAuthentication(SoundGeotagHandler),         name='api-sound-geotag'),
     
     # users
-    url(r'^people/(?P<username>[^//]+)/$',                                                     AR(UserHandler),                    name='api-single-user'),
-    url(r'^people/(?P<username>[^//]+)/sounds/$',                                              AR(UserSoundsHandler),              name='api-user-sounds'),
-    url(r'^people/(?P<username>[^//]+)/packs/$',                                               AR(UserPacksHandler),               name='api-user-packs'),
-    url(r'^people/(?P<username>[^//]+)/bookmark_categories/$',                                 AR(UserBookmarkCategoriesHandler),  name='api-user-bookmark-categories'),
-    url(r'^people/(?P<username>[^//]+)/bookmark_categories/(?P<category_id>\d+)/sounds/$',     AR(UserBookmarkCategoryHandler),    name='api-user-bookmark-category'),
-    url(r'^people/(?P<username>[^//]+)/bookmark_categories/uncategorized/sounds/$',            AR(UserBookmarkCategoryHandler),    name='api-user-bookmark-uncategorized'),
+    url(r'^people/(?P<username>[^//]+)/$',                                                     KeyAuthentication(UserHandler),                    name='api-single-user'),
+    url(r'^people/(?P<username>[^//]+)/sounds/$',                                              KeyAuthentication(UserSoundsHandler),              name='api-user-sounds'),
+    url(r'^people/(?P<username>[^//]+)/packs/$',                                               KeyAuthentication(UserPacksHandler),               name='api-user-packs'),
+    url(r'^people/(?P<username>[^//]+)/bookmark_categories/$',                                 KeyAuthentication(UserBookmarkCategoriesHandler),  name='api-user-bookmark-categories'),
+    url(r'^people/(?P<username>[^//]+)/bookmark_categories/(?P<category_id>\d+)/sounds/$',     KeyAuthentication(UserBookmarkCategoryHandler),    name='api-user-bookmark-category'),
+    url(r'^people/(?P<username>[^//]+)/bookmark_categories/uncategorized/sounds/$',            KeyAuthentication(UserBookmarkCategoryHandler),    name='api-user-bookmark-uncategorized'),
 
     # packs
-    url(r'^packs/(?P<pack_id>\d+)/$',                               AR(PackHandler),           name='api-single-pack'),
-    url(r'^packs/(?P<pack_id>\d+)/serve/$',                         AR(PackServeHandler),      name='api-pack-serve'),
-    url(r'^packs/(?P<pack_id>\d+)/sounds/$',                        AR(PackSoundsHandler),     name='api-pack-sounds'),
+    url(r'^packs/(?P<pack_id>\d+)/$',                               KeyAuthentication(PackHandler),           name='api-single-pack'),
+    url(r'^packs/(?P<pack_id>\d+)/serve/$',                         KeyAuthentication(PackServeHandler),      name='api-pack-serve'),
+    url(r'^packs/(?P<pack_id>\d+)/sounds/$',                        KeyAuthentication(PackSoundsHandler),     name='api-pack-sounds'),
 
     # cc-mixter pool
     url(r'^pool/search$',                                           SoundPoolSearchHandler(),   name='api-pool-search'),
@@ -65,9 +88,18 @@ urlpatterns = patterns('',
     
     # website
     url(r'^apply/$', create_api_key),
-
-    # anything else (invalid urls)
-    url(r'/$', build_invalid_url ),
+)
+# piston, oauth urls
+urlpatterns += patterns(
+    'piston.authentication',
+    url(r'^oauth/request_token/$', 'oauth_request_token'),
+    url(r'^oauth/authorize/$', 'oauth_user_auth'),
+    url(r'^oauth/access_token/$', 'oauth_access_token'),
 )
 
+# anything else (invalid urls)
+urlpatterns += patterns(
+    '',
+    url(r'/$', build_invalid_url ),
+)
 
