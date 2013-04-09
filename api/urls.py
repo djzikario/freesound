@@ -24,6 +24,7 @@ from handlers import *
 from views import create_api_key
 from api_utils import build_invalid_url
 
+# Key-based authentication resources
 class AR(Resource):
     def __call__(self, *args, **kwargs):
         response = super(AR, self).__call__(*args, **kwargs)
