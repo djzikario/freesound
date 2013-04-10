@@ -1,16 +1,31 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-  <head>
-    <title>Authorize Token</title>
-  </head>
-  <body>
-    <h1>Authorize Token</h1>
+{% extends "accounts/_notab.html" %}
 
-    <form action="{% url piston.authentication.oauth_user_auth %}" method="POST">
-      {{ form.as_table }}
-      <button type="submit">Confirm</button>
-    </form>
+{% block title %}Authorization request{% endblock %}
 
-  </body>
-</html>
+{% block head %}
+    {{ block.super }}
+{% endblock head %}
+
+
+{% block tab_home_active %}active_tab{% endblock %}
+
+{% block section_content %}
+
+    <h1>Authorization request</h1>
+
+    <div id="content">
+
+        <p>
+            The application <b>{{ token.consumer.name }}</b> wants to acces Freesound on your behalf. Click confirm to grant them access.
+        </p>
+
+            <form action="{% url piston.authentication.oauth_user_auth %}" method="POST">
+                {{ form.oauth_token }}
+                {{ form.oauth_callback }}
+                {{ form.authorize_access }}
+                <button type="submit">Confirm</button>
+            </form>
+    </div><!-- #content -->
+    <br class="clear"/><!-- Need a clearing element for some reason here.. -->
+{% endblock %}
 

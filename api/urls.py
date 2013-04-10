@@ -28,6 +28,7 @@ from api_utils import build_invalid_url, MyKeyAuth
 
 ## TODO
 ## Check error logs to see how they're logged
+## Allow users to revoke permissions
 
 
 # Key-based authentication resources
