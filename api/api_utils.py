@@ -33,19 +33,13 @@ logger = logging.getLogger("api")
 
 
 class ReturnError(Exception):
-    def __init__(self, status_code, type, extra, request):
+    def __init__(self, status_code, type, extra):
         self.status_code = status_code
         self.type = type
         self.extra = extra
-        self.request = request
 
 
-def build_error_response(e, request=None):
-
-    if request:
-        request_info = request
-    else:
-        request_info = e.request
+def build_error_response(e, request):
 
     content = {"error": True,
                "type": e.type,
@@ -56,33 +50,31 @@ def build_error_response(e, request=None):
     logger.error("%i %s: %s" % (content['status_code'], content['type'], content['explanation']))
 
     response = rc.BAD_REQUEST
-    response_format = request_info.GET.get("format", "json")
+    response_format = request.GET.get("format", "json")
     em_info = Emitter.get(response_format)
     RequestEmitter = em_info[0]
     emitter = RequestEmitter(content, typemapper, "", "", False)
-    response.content = emitter.render(request_info)
+    response.content = emitter.render(request)
     response['Content-Type'] = em_info[1]
 
     return response
 
 
-def create_unexpected_error(e, request):
+def create_unexpected_error(e):
     debug = traceback.format_exc() if settings.DEBUG else str(e)
     logger.error('500 API error: Unexpected')
     return ReturnError(500,
                        "InternalError",
                        {"explanation": "An internal Freesound error ocurred.",
                         "really_really_sorry": True,
-                        "debug": debug
-                        }, request)
+                        "debug": debug})
 
 
 def build_invalid_url(request):
     logger.error('404 API error: Invalid Url')
     return build_error_response(ReturnError(404,
                                             "InvalidUrl",
-                                            {"explanation": "The introduced url is invalid.",},
-                                            request))
+                                            {"explanation": "The introduced url is invalid.",}), request)
 
 
 class catchExceptionsAndReturnAsErrors():
@@ -101,7 +93,7 @@ class catchExceptionsAndReturnAsErrors():
             except ReturnError, e:
                 return build_error_response(e, request)
             except Exception, e:
-                return build_error_response(create_unexpected_error(e, request))
+                return build_error_response(create_unexpected_error(e), request)
 
         return decorated_api_func
 
@@ -120,8 +112,7 @@ class MyKeyAuth(object):
 
                 #logger.error('401 API error: Authentication error (no api key supplied)')
                 self.error = ReturnError(401, "AuthenticationError",
-                                         {"explanation": "Please include your api key as the api_key GET parameter"},
-                                         request)
+                                         {"explanation": "Please include your api key as the api_key GET parameter"})
                 return False
 
             try:
@@ -130,58 +121,16 @@ class MyKeyAuth(object):
             except ApiKey.DoesNotExist:
                 #logger.error('401 API error: Authentication error (wrong api key)')
                 self.error = ReturnError(401, "AuthenticationError",
-                                         {"explanation": "Supplied api_key does not exist"},
-                                         request)
+                                         {"explanation": "Supplied api_key does not exist"})
                 return False
 
             request.user = db_api_key.user
             return True
 
         except Exception, e:
-            self.error = create_unexpected_error(e, request)
+            self.error = create_unexpected_error(e)
             return False
 
-    def challenge(self):
-        return build_error_response(self.error)
+    def challenge(self, request):
+        return build_error_response(self.error, request)
 
-
-'''
-class keyAuth():
-
-    def __init__(self, get_parameter='api_key'): # FROM FREESOUND
-        self.get_parameter = get_parameter
-
-    def __call__(self, f):
-        """
-        If there are decorator arguments, __call__() is only called
-        once, as part of the decoration process! You can only give
-        it a single argument, which is the function object.
-        """
-        def decorated_api_func(handler, request, *args, **kargs):
-            try:
-
-                # Try to get the api key
-                api_key = request.GET.get(self.get_parameter, False)
-                if not api_key:
-                    logger.error('401 API error: Authentication error (no api key supplied)')
-                    raise ReturnError(401, "AuthenticationError",
-                                          {"explanation":  "Please include your api key as the api_key GET parameter"},
-                                          )
-                try:
-                    db_api_key = ApiKey.objects.get(key=api_key, status='OK')
-                except ApiKey.DoesNotExist:
-                    logger.error('401 API error: Authentication error (wrong api key)')
-                    raise ReturnError(401, "AuthenticationError",
-                                          {"explanation":  "Supplied api_key does not exist"},
-                                          )
-
-                request.user = db_api_key.user
-                return f(handler, request, *args, **kargs)
-            except ReturnError, e:
-                return build_error_response(e, request)
-            except Exception, e:
-                return build_unexpected(e, request)
-
-        return decorated_api_func
-
-'''
