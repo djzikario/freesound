@@ -10,7 +10,7 @@ from django.core.mail import send_mail, mail_admins
 from managers import TokenManager, ConsumerManager, ResourceManager
 from signals import consumer_post_save, consumer_post_delete
 
-KEY_SIZE = 18
+KEY_SIZE = 4
 SECRET_SIZE = 32
 VERIFIER_SIZE = 10
 
@@ -104,7 +104,7 @@ class Token(models.Model):
         }
 
         if self.verifier:
-            token_dict.update({ 'oauth_verifier': self.verifier })
+            token_dict.update({'oauth_verifier': self.verifier })
 
         if only_key:
             del token_dict['oauth_token_secret']

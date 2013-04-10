@@ -23,12 +23,12 @@ from piston.resource import Resource
 from piston.authentication import OAuthAuthentication
 from handlers import *
 from views import create_api_key
-from api_utils import build_invalid_url, MyKeyAuth, build_error_response
+from api_utils import build_invalid_url, MyKeyAuth
 
 
-## TODO: que passa amb les exceptions
-## Create a decorator to handle exceptions
+## TODO
 ## Check error logs to see how they're logged
+
 
 # Key-based authentication resources
 myKeyAuth = MyKeyAuth()
@@ -89,6 +89,8 @@ urlpatterns = patterns('',
     # website
     url(r'^apply/$', create_api_key),
 )
+
+
 # piston, oauth urls
 urlpatterns += patterns(
     'piston.authentication',
@@ -96,6 +98,7 @@ urlpatterns += patterns(
     url(r'^oauth/authorize/$', 'oauth_user_auth'),
     url(r'^oauth/access_token/$', 'oauth_access_token'),
 )
+
 
 # anything else (invalid urls)
 urlpatterns += patterns(

@@ -124,7 +124,8 @@ class MyKeyAuth(object):
                                          {"explanation": "Supplied api_key does not exist"})
                 return False
 
-            request.user = db_api_key.user
+            request.developer_user = db_api_key.user
+            request.username = request.developer_user
             return True
 
         except Exception, e:

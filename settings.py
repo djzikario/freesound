@@ -224,4 +224,6 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 ESSENTIA_EXECUTABLE = '/home/fsweb/freesound/essentia/essentia_1.2.2_extractor/streaming_extractor'
 
+OAUTH_CALLBACK_VIEW = "api.views.request_token_ready"
+
 from logger import LOGGING

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-KEY_SIZE = 18
+KEY_SIZE = 4
 SECRET_SIZE = 32
 
 class KeyManager(models.Manager):

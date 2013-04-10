@@ -13,6 +13,8 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
+from api.api_utils import ReturnError, build_error_response, create_unexpected_error
+
 from piston import forms
 
 class NoAuthentication(object):
@@ -238,6 +240,7 @@ def oauth_access_token(request):
 
 INVALID_PARAMS_RESPONSE = send_oauth_error(oauth.OAuthError('Invalid request parameters.'))
 
+
 class OAuthAuthentication(object):
     """
     OAuth authentication. Based on work by Leah Culver.
@@ -255,22 +258,37 @@ class OAuthAuthentication(object):
         for more information about what goes on here.
         """
 
-        if self.is_valid_request(request):
-            try:
-                consumer, token, parameters = self.validate_token(request)
-            except oauth.OAuthError, err:
-                print send_oauth_error(err)
+        try:
+            if self.is_valid_request(request):
+                try:
+                    consumer, token, parameters = self.validate_token(request)
+                except oauth.OAuthError, err:
+                    self.error = ReturnError(401, "AuthenticationError",
+                                             {"explanation": "OAuth authentication failed"})
+                    return False
+
+                if consumer and token:
+                    request.user = token.user
+                    request.consumer = consumer
+                    request.throttle_extra = token.consumer.id
+                    request.developer_user = consumer.user
+
+                    return True
+                else:
+                    self.error = ReturnError(401, "AuthenticationError",
+                                             {"explanation": "OAuth authentication failed"})
+                    return False
+            else:
+                self.error = ReturnError(401, "AuthenticationError",
+                                         {"explanation": "Invalid OAuth request"})
                 return False
 
-            if consumer and token:
-                request.user = token.user
-                request.consumer = consumer
-                request.throttle_extra = token.consumer.id
-                return True
+        except Exception, e:
+            self.error = create_unexpected_error(e)
+            return False
 
-        return False
 
-    def challenge(self, request=None):
+    def challenge(self, request):
         """
         Returns a 401 response with a small bit on
         what OAuth is, and where to learn more about it.
@@ -281,6 +299,8 @@ class OAuthAuthentication(object):
         future, browsers will take care of this stuff for us
         and understand the 401 with the realm we give it.
         """
+
+        '''
         response = HttpResponse()
         response.status_code = 401
         realm = 'API'
@@ -292,6 +312,10 @@ class OAuthAuthentication(object):
 
         response.content = tmpl
         return response
+        '''
+
+        return build_error_response(self.error, request)
+
 
     @staticmethod
     def is_valid_request(request):

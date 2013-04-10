@@ -33,7 +33,7 @@ import binascii
 from piston.utils import AnonymousToken
 
 
-VERSION = '1.0' # Hi Blaine!
+VERSION = '1.0'
 HTTP_METHOD = 'GET'
 SIGNATURE_METHOD = 'PLAINTEXT'
 
@@ -620,9 +620,6 @@ class OAuthSignatureMethod(object):
 
     def check_signature(self, oauth_request, consumer, token, signature):
         built = self.build_signature(oauth_request, consumer, token)
-        print "\t SIGNA: %s" % signature
-        print "\t BUILT: %s" % built
-
         return built == signature
 
 
@@ -646,8 +643,6 @@ class OAuthSignatureMethod_HMAC_SHA1(OAuthSignatureMethod):
         return key, raw
 
     def build_signature(self, oauth_request, consumer, token):
-
-        ### POINT OF INTEREST
 
         """Builds the base signature string."""
         key, raw = self.build_signature_base_string(oauth_request, consumer,
