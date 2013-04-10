@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-KEY_SIZE = 4
-SECRET_SIZE = 32
+KEY_SIZE = 8
+SECRET_SIZE = 16
 
 class KeyManager(models.Manager):
     '''Add support for random key/secret generation
