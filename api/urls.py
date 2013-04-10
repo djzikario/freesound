@@ -28,7 +28,10 @@ from api_utils import build_invalid_url, MyKeyAuth
 
 ## TODO
 ## Check error logs to see how they're logged
-## Allow users to revoke permissions
+## Allow users to revoke permissions (new view in accounts)
+## Check in three legged authorization how does it log (do a print of the log and see if it correctly displays end user username and developer username)
+## Convert error messages from three leeged authorization to our type of messages
+## Create api downloads table??
 
 
 # Key-based authentication resources
