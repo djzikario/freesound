@@ -26,8 +26,9 @@ from views import create_api_key
 from api_utils import build_invalid_url, MyKeyAuth, build_error_response
 
 
-
 ## TODO: que passa amb les exceptions
+## Create a decorator to handle exceptions
+## Check error logs to see how they're logged
 
 # Key-based authentication resources
 myKeyAuth = MyKeyAuth()
@@ -36,15 +37,7 @@ class KeyAuthentication(Resource):
         super(KeyAuthentication, self).__init__(authentication=myKeyAuth, *args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        try:
-            response = super(KeyAuthentication, self).__call__(*args, **kwargs)
-        except Exception, e:
-            print "HEYHEY"
-        #except ReturnError, e:
-        #    return build_error_response(e)
-        #except Exception, e:
-        #    return build_error_response(e)
-
+        response = super(KeyAuthentication, self).__call__(*args, **kwargs)
         response['Access-Control-Allow-Origin'] = '*'
         return response
 

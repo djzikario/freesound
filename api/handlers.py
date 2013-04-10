@@ -39,7 +39,7 @@ from api.api_utils import ReturnError#, parse_filter, parse_target
 import os
 from django.contrib.syndication.views import Feed
 from urllib import quote
-from api_utils import build_error_response
+from api_utils import catchExceptionsAndReturnAsErrors
 
 logger = logging.getLogger("api")
 
@@ -379,7 +379,7 @@ class SoundSearchHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/sounds/search/?q=hoelahoep
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request):
         
         form = SoundSearchForm(SEARCH_SORT_OPTIONS_API, request.GET)
@@ -474,7 +474,7 @@ class SoundContentSearchHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/sounds/content_search/?t=".lowlevel.pitch.mean:220.56"
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request):
         t = request.GET.get("t", "")
         f = request.GET.get("f", "")
@@ -539,8 +539,10 @@ class SoundHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/sounds/2
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, sound_id):
+
+
 
         try:
             sound = Sound.objects.select_related('geotag', 'user', 'license', 'tags').get(id=sound_id, moderation_state="OK", processing_state="OK")
@@ -566,6 +568,7 @@ class SoundHandlerTEST(BaseHandler):
     curl:           curl http://www.freesound.org/api/sounds/2
     '''
 
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, sound_id):
 
         try:
@@ -591,7 +594,7 @@ class SoundServeHandler(BaseHandler):
     curl:         curl http://www.freesound.org/api/sounds/2/serve
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, sound_id):
         
         try:
@@ -622,7 +625,7 @@ class SoundSimilarityHandler(BaseHandler):
     curl:         curl http://www.freesound.org/api/sounds/2/similar
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, sound_id):
         
         try:
@@ -660,7 +663,7 @@ class SoundAnalysisHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/sounds/2/analysis
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, sound_id, filter=False):
 
         try:
@@ -714,7 +717,7 @@ class SoundGeotagHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/sounds/geotag/?min_lon=2.005176544189453&max_lon=2.334766387939453&min_lat=41.3265528618605&max_lat=41.4504467428547
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request):
         
         min_lat = request.GET.get('min_lat', 0.0)
@@ -771,7 +774,7 @@ class UserHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/people/vincent_akkermans
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, username):
         try:
             user = User.objects.get(username__iexact=username)
@@ -796,7 +799,7 @@ class UserSoundsHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/people/vincent_akkermans/sounds?p=5
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, username):
         try:
             user = User.objects.get(username__iexact=username)
@@ -843,7 +846,7 @@ class UserPacksHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/people/vincent_akkermans/packs
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, username):
         try:
             user = User.objects.get(username__iexact=username)
@@ -869,7 +872,7 @@ class UserBookmarkCategoriesHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/people/vincent_akkermans/bookmark_categories
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, username):
         try:
             user = User.objects.get(username__iexact=username)
@@ -903,7 +906,7 @@ class UserBookmarkCategoryHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/people/vincent_akkermans/bookmark_categories/34/sounds/
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, username, category_id = None):
         try:
             user = User.objects.get(username__iexact=username)
@@ -952,7 +955,7 @@ class PackHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/packs/<pack_id>
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, pack_id):
         try:
             pack = Pack.objects.get(id=pack_id)
@@ -977,7 +980,7 @@ class PackSoundsHandler(BaseHandler):
     curl:           curl http://www.freesound.org/api/packs/<pack_id>/sounds
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, pack_id):
         try:
             pack = Pack.objects.get(id=pack_id)
@@ -1024,7 +1027,7 @@ class PackServeHandler(BaseHandler):
     curl:         curl http://www.freesound.org/api/packs/2/serve
     '''
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request, pack_id):
         try:
             pack = Pack.objects.get(id=pack_id)
@@ -1040,7 +1043,7 @@ class PackServeHandler(BaseHandler):
 class UpdateSolrHandler(BaseHandler):
     allowed_methods = ('GET',)
 
-    #@keyAuth()
+    @catchExceptionsAndReturnAsErrors()
     def read(self, request):
         sound_qs = Sound.objects.select_related("pack", "user", "license") \
                                 .filter(processing_state="OK", moderation_state="OK")

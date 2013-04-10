@@ -28,6 +28,9 @@ import logging
 
 logger = logging.getLogger("api")
 
+### Error handling
+##################
+
 
 class ReturnError(Exception):
     def __init__(self, status_code, type, extra, request):
@@ -36,20 +39,28 @@ class ReturnError(Exception):
         self.extra = extra
         self.request = request
 
-def build_error_response(e):
 
-    #logger.error(str(e.status_code) + ' API error: ' + e.type)
+def build_error_response(e, request=None):
+
+    if request:
+        request_info = request
+    else:
+        request_info = e.request
+
     content = {"error": True,
                "type": e.type,
                "status_code": e.status_code,
                "explanation": ""}
     content.update(e.extra)
+
+    logger.error("%i %s: %s" % (content['status_code'], content['type'], content['explanation']))
+
     response = rc.BAD_REQUEST
-    response_format = e.request.GET.get("format", "json")
+    response_format = request_info.GET.get("format", "json")
     em_info = Emitter.get(response_format)
     RequestEmitter = em_info[0]
     emitter = RequestEmitter(content, typemapper, "", "", False)
-    response.content = emitter.render(e.request)
+    response.content = emitter.render(request_info)
     response['Content-Type'] = em_info[1]
 
     return response
@@ -60,21 +71,43 @@ def create_unexpected_error(e, request):
     logger.error('500 API error: Unexpected')
     return ReturnError(500,
                        "InternalError",
-                       {"explanation":
-                        "An internal Freesound error ocurred.",
+                       {"explanation": "An internal Freesound error ocurred.",
                         "really_really_sorry": True,
                         "debug": debug
-                       }, request)
+                        }, request)
 
 
 def build_invalid_url(request):
     logger.error('404 API error: Invalid Url')
     return build_error_response(ReturnError(404,
                                             "InvalidUrl",
-                                            {"explanation":
-                                             "The introduced url is invalid.",},
+                                            {"explanation": "The introduced url is invalid.",},
                                             request))
 
+
+class catchExceptionsAndReturnAsErrors():
+
+    def __call__(self, f):
+        """
+        If there are decorator arguments, __call__() is only called
+        once, as part of the decoration process! You can only give
+        it a single argument, which is the function object.
+        """
+        def decorated_api_func(handler, request, *args, **kargs):
+            try:
+                #request.user = db_api_key.user
+                result = f(handler, request, *args, **kargs)
+                return result
+            except ReturnError, e:
+                return build_error_response(e, request)
+            except Exception, e:
+                return build_error_response(create_unexpected_error(e, request))
+
+        return decorated_api_func
+
+
+### Standard key authentication
+###############################
 
 class MyKeyAuth(object):
 
@@ -85,9 +118,9 @@ class MyKeyAuth(object):
             api_key = request.GET.get('api_key', False)
             if not api_key:
 
-                logger.error('401 API error: Authentication error (no api key supplied)')
+                #logger.error('401 API error: Authentication error (no api key supplied)')
                 self.error = ReturnError(401, "AuthenticationError",
-                                         {"explanation":  "Please include your api key as the api_key GET parameter"},
+                                         {"explanation": "Please include your api key as the api_key GET parameter"},
                                          request)
                 return False
 
@@ -95,9 +128,9 @@ class MyKeyAuth(object):
                 db_api_key = ApiKey.objects.get(key=api_key, status='OK')
 
             except ApiKey.DoesNotExist:
-                logger.error('401 API error: Authentication error (wrong api key)')
+                #logger.error('401 API error: Authentication error (wrong api key)')
                 self.error = ReturnError(401, "AuthenticationError",
-                                         {"explanation":  "Supplied api_key does not exist"},
+                                         {"explanation": "Supplied api_key does not exist"},
                                          request)
                 return False
 
