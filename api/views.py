@@ -50,8 +50,6 @@ def create_api_key(request):
 
 def request_token_ready(request, token):
     error = request.GET.get('error', '')
-    token.enabled = True
-    token.save()
 
     ctx = RequestContext(request, {
         'error': error,
@@ -68,16 +66,16 @@ def access_tokens(request):
     user = request.user
     tokens_raw = Token.objects.filter(user=user, token_type=2).order_by('-timestamp')
     tokens = []
-    #token_names = []
+    token_names = []
     for token in tokens_raw:
-        #if not token.consumer.name in token_names:
-        tokens.append({
-            'consumer_name': token.consumer.name,
-            'date': datetime.datetime.fromtimestamp(int(token.timestamp)).strftime('%d-%m-%Y'),
-            'consumer_key': token.consumer.key,
-            'enabled': token.enabled,
-        })
-        #token_names.append(token.consumer.name)
+        if not token.consumer.name in token_names:
+            tokens.append({
+                'consumer_name': token.consumer.name,
+                'date': datetime.datetime.fromtimestamp(int(token.timestamp)).strftime('%d-%m-%Y'),
+                'consumer_key': token.consumer.key,
+                'enabled': token.enabled,
+            })
+        token_names.append(token.consumer.name)
 
     return render_to_response('api/access_tokens.html',
                               {'user': request.user, 'tokens': tokens},

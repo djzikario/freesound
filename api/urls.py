@@ -30,9 +30,12 @@ from api_utils import build_invalid_url, MyKeyAuth
 ## Check error logs to see how they're logged
 ## Error messages resurned by oauth during the request token phase (before the acces token is given)
 ## Create api downloads table??
-## Check that three leeged works ok after accepting and revoking tokens and which codes can be sucessfully used to get authenticated
-
-## How to enable/disable tokens? is there a better way than removing them?
+## Does other pin codes also work?
+##  - Apparently the verifier is useless... with any code it works...
+## Edit api key generation, etc to also create consumer key and secret for 3legged auth
+##  - c = Consumer(name="testname",description="desc", key="tkey", secret="tsec", status="accepted", user=u)
+##  - c.generate_random_codes()
+##  - c.save()
 
 
 # Key-based authentication resources
