@@ -1,0 +1,25 @@
+{% extends "accounts/_section.html" %}
+
+
+{% block title %}{{user.username}} - Granted permissions{% endblock %}
+
+{% block section_content %}
+    <h1>Your granted permissions</h1>
+
+     {% if tokens %}
+     <p>This is the list of applications that you granted permission to use your credentials.
+        <br>You can revoke the permission to any of the applications using this list.
+        <br>If you revoke a permission and want to enable it again, you'll need to do that by using the application again.</p>
+
+    <table>
+        <tr><th>Application name</th><th>Date granted permission</th><th></th></tr>
+        {% for token in tokens %}
+            <tr><td>{{ token.consumer_name }}</td><td>{{ token.date }}</td><td><a href="{% url revoke-permissions token.consumer_key %}">Revoke</a></td></tr>
+        {% endfor %}
+    </table>
+    {% else %}
+         <p>Currently you have not granted any permission to any third-party application.</p>
+    {% endif %}
+
+
+{% endblock %}

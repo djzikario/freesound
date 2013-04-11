@@ -23,6 +23,10 @@ from models import ApiKey
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from piston.models import Token
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+import datetime
 
 @login_required
 def create_api_key(request):
@@ -54,3 +58,33 @@ def request_token_ready(request, token):
         'piston/request_token_ready.html',
         context_instance = ctx
     )
+
+
+@login_required
+def access_tokens(request):
+    user = request.user
+    tokens_raw = Token.objects.filter(user=user, token_type=2).order_by('-timestamp')
+    tokens = []
+    token_names = []
+    for token in tokens_raw:
+        if not token.consumer.name in token_names:
+            tokens.append({
+                'consumer_name': token.consumer.name,
+                'date': datetime.datetime.fromtimestamp(int(token.timestamp)).strftime('%d-%m-%Y %H:%M:%S'),
+                'consumer_key': token.consumer.key,
+            })
+            token_names.append(token.consumer.name)
+
+    return render_to_response('api/access_tokens.html',
+                              {'user': request.user, 'tokens': tokens},
+                              context_instance=RequestContext(request))
+
+
+@login_required
+def revoke_permissions(request, consumer_key):
+    user = request.user
+    tokens = Token.objects.filter(user=user, consumer__key=consumer_key)
+    for token in tokens:
+        token.delete()
+
+    return HttpResponseRedirect(reverse("access-tokens"))

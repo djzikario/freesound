@@ -91,7 +91,7 @@ class Token(models.Model):
     objects = TokenManager()
 
     def __unicode__(self):
-        return u"%s Token %s for %s" % (self.get_token_type_display(), self.key, self.consumer)
+        return u"%s Token %s for %s (for user %s)" % (self.get_token_type_display(), self.key, self.consumer, self.user.username)
 
     def is_anonymous(self):
         return False

@@ -72,6 +72,7 @@ from django.contrib.auth.decorators import user_passes_test
 import json
 from messages.models import Message
 from django.contrib.contenttypes.models import ContentType
+from piston.models import Token
 
 
 audio_logger = logging.getLogger('audio')
@@ -321,7 +322,9 @@ def edit(request):
     else:
         image_form = AvatarForm(prefix="image")
 
-    return render_to_response('accounts/edit.html', dict(profile=profile, profile_form=profile_form, image_form=image_form), context_instance=RequestContext(request))
+    has_tokens = Token.objects.filter(user=request.user, token_type=2).count()
+
+    return render_to_response('accounts/edit.html', dict(profile=profile, profile_form=profile_form, image_form=image_form, has_tokens=has_tokens), context_instance=RequestContext(request))
 
 
 @login_required
