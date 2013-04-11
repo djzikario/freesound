@@ -81,6 +81,7 @@ class Token(models.Model):
     token_type = models.IntegerField(choices=TOKEN_TYPES)
     timestamp = models.IntegerField(default=long(time.time()))
     is_approved = models.BooleanField(default=False)
+    enabled = models.BooleanField(default=False)
 
     user = models.ForeignKey(User, null=True, blank=True, related_name='tokens')
     consumer = models.ForeignKey(Consumer)

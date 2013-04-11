@@ -369,7 +369,7 @@ class OAuthRequest(object):
 
 class OAuthServer(object):
     """A worker to check the validity of a request against a data store."""
-    timestamp_threshold = 300 # In seconds, five minutes.
+    timestamp_threshold = 300  # In seconds, five minutes.
     version = VERSION
     signature_methods = None
     data_store = None
@@ -441,7 +441,6 @@ class OAuthServer(object):
         if token.is_anonymous():
             # Update consumer
             token.consumer = consumer
-
         self._check_signature(oauth_request, consumer, token)
         parameters = oauth_request.get_nonoauth_parameters()
         return consumer, token, parameters

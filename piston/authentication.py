@@ -262,9 +262,18 @@ class OAuthAuthentication(object):
             if self.is_valid_request(request):
                 try:
                     consumer, token, parameters = self.validate_token(request)
+                    if not token.enabled:
+                        self.error = ReturnError(401, "AuthenticationError",
+                                                 {"explanation": "OAuth authentication failed", "details": "User has denied access to the application."})
+                        return False
+
                 except oauth.OAuthError, err:
+                    try:
+                        message = err.message
+                    except:
+                        message = ""
                     self.error = ReturnError(401, "AuthenticationError",
-                                             {"explanation": "OAuth authentication failed"})
+                                             {"explanation": "OAuth authentication failed", "details": message})
                     return False
 
                 if consumer and token:

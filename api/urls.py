@@ -28,10 +28,11 @@ from api_utils import build_invalid_url, MyKeyAuth
 
 ## TODO
 ## Check error logs to see how they're logged
-## Check in three legged authorization how does it log (do a print of the log and see if it correctly displays end user username and developer username)
-## Convert error messages from three leeged authorization to our type of messages
+## Error messages resurned by oauth during the request token phase (before the acces token is given)
 ## Create api downloads table??
 ## Check that three leeged works ok after accepting and revoking tokens and which codes can be sucessfully used to get authenticated
+
+## How to enable/disable tokens? is there a better way than removing them?
 
 
 # Key-based authentication resources

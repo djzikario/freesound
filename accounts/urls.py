@@ -123,5 +123,7 @@ urlpatterns = patterns('accounts.views',
     url(r'^messages/new/username_lookup$', messages.username_lookup, name='messages-username_lookup'),
 
     url(r'^app_permissions/$', api.access_tokens, name='access-tokens'),
-    url(r'^app_permissions/revoke_permission/(?P<consumer_key>[^//]+)/$', api.revoke_permissions, name='revoke-permissions'),
+    url(r'^app_permissions/revoke_permission/(?P<consumer_key>[^//]+)/$', api.revoke_permission, name='revoke-permission'),
+    url(r'^app_permissions/give_permission/(?P<consumer_key>[^//]+)/$', api.give_permission, name='give-permission'),
 )
+

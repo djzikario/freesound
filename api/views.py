@@ -50,6 +50,9 @@ def create_api_key(request):
 
 def request_token_ready(request, token):
     error = request.GET.get('error', '')
+    token.enabled = True
+    token.save()
+
     ctx = RequestContext(request, {
         'error': error,
         'token': token
@@ -65,15 +68,16 @@ def access_tokens(request):
     user = request.user
     tokens_raw = Token.objects.filter(user=user, token_type=2).order_by('-timestamp')
     tokens = []
-    token_names = []
+    #token_names = []
     for token in tokens_raw:
-        if not token.consumer.name in token_names:
-            tokens.append({
-                'consumer_name': token.consumer.name,
-                'date': datetime.datetime.fromtimestamp(int(token.timestamp)).strftime('%d-%m-%Y %H:%M:%S'),
-                'consumer_key': token.consumer.key,
-            })
-            token_names.append(token.consumer.name)
+        #if not token.consumer.name in token_names:
+        tokens.append({
+            'consumer_name': token.consumer.name,
+            'date': datetime.datetime.fromtimestamp(int(token.timestamp)).strftime('%d-%m-%Y'),
+            'consumer_key': token.consumer.key,
+            'enabled': token.enabled,
+        })
+        #token_names.append(token.consumer.name)
 
     return render_to_response('api/access_tokens.html',
                               {'user': request.user, 'tokens': tokens},
@@ -81,10 +85,21 @@ def access_tokens(request):
 
 
 @login_required
-def revoke_permissions(request, consumer_key):
+def revoke_permission(request, consumer_key):
     user = request.user
-    tokens = Token.objects.filter(user=user, consumer__key=consumer_key)
+    tokens = Token.objects.filter(user=user, consumer__key=consumer_key, token_type=2)
     for token in tokens:
-        token.delete()
+        token.enabled = False
+        token.save()
+
+    return HttpResponseRedirect(reverse("access-tokens"))
+
+@login_required
+def give_permission(request, consumer_key):
+    user = request.user
+    tokens = Token.objects.filter(user=user, consumer__key=consumer_key, token_type=2)
+    for token in tokens:
+        token.enabled = True
+        token.save()
 
     return HttpResponseRedirect(reverse("access-tokens"))

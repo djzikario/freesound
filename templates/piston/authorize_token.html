@@ -16,7 +16,7 @@
     <div id="content">
 
         <p>
-            The application <b>{{ token.consumer.name }}</b> wants to acces Freesound on your behalf. Click confirm to grant them access.
+            The application <b>{{ token.consumer.name }}</b> wants to acces Freesound on your behalf.<br>Click confirm to grant them access.
         </p>
 
             <form action="{% url piston.authentication.oauth_user_auth %}" method="POST">

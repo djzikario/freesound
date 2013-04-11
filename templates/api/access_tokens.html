@@ -8,13 +8,21 @@
 
      {% if tokens %}
      <p>This is the list of applications that you granted permission to use your credentials.
-        <br>You can revoke the permission to any of the applications using this list.
-        <br>If you revoke a permission and want to enable it again, you'll need to do that by using the application again.</p>
+     <br>You can revoke the permission to any of the applications using this list.
+     <br>A single application might appear duplicated in this list, meaning that you have given access more than one time.
 
     <table>
-        <tr><th>Application name</th><th>Date granted permission</th><th></th></tr>
+        <tr><th>Application name</th><th>Date granted permission</th><th>Status</th><th></th></tr>
         {% for token in tokens %}
-            <tr><td>{{ token.consumer_name }}</td><td>{{ token.date }}</td><td><a href="{% url revoke-permissions token.consumer_key %}">Revoke</a></td></tr>
+            <tr><td>{{ token.consumer_name }}</td><td>{{ token.date }}</td><td style="background-color:{% if token.enabled %}#00FF00{% else %}#FF0000{% endif %};">{% if token.enabled %}Application has access{% else %}Application does not have access{% endif %}</td>
+                <td>
+                {% if token.enabled %}
+                    <a href="{% url revoke-permission token.consumer_key %}">Revoke access</a>
+                {% else %}
+                    <a href="{% url give-permission token.consumer_key %}">Give access</a>
+                {% endif %}
+                </td>
+            </tr>
         {% endfor %}
     </table>
     {% else %}
