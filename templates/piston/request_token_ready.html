@@ -1,6 +1,6 @@
 {% extends "accounts/_notab.html" %}
 
-{% block title %}{% if not error %}Permission granted{% else %}Error while granting permission{% endif %}{% endblock %}
+{% block title %}{% if not error %}Permission {% if token.is_approved %}granted{% else %}denied{% endif %}{% else %}Error while granting permission{% endif %}{% endblock %}
 
 {% block head %}
     {{ block.super }}
@@ -11,22 +11,26 @@
 
 {% block section_content %}
 
-    <h1>{% if not error %}Permission granted{% else %}Error while granting permission{% endif %}</h1>
+    <h1>{% if not error %}Permission {% if token.is_approved %}granted{% else %}denied{% endif %}{% else %}Error while granting permission{% endif %}</h1>
 
     <div>
         {% if not error %}
             <p>
-                Permission to application <b>{{ token.consumer.name }}</b> has been granted.
-                <br>
-                Now, the application that requested your authorization should ask you to introduce a pin code or passowd. That is the code you must introduce:
+                Permission to application <b>{{ token.consumer.name }}</b> has been {% if token.is_approved %}granted{% else %}denied{% endif %}.
+                {% if token.is_approved %}
+                    <br>
+                    Now, the application that requested your authorization will probably ask you to introduce a pin code or passowd (in some cases the code might not be necessary). This is the code you must introduce:
+                {% endif %}
             </p>
-            <p style="text-align: center;font-size: 20px">
-                <b>{{ token.verifier }}</b>
-            </p>
-            <p>
-                After the code is introduced the application will be able to act on your behalf.
-                <br>You can manage the permissions you give to third party applications using <a href="{% url access-tokens %}">this page</a>.
-            </p>
+
+            {% if token.is_approved %}
+                <p style="text-align: center;font-size: 20px">
+                    <b>{{ token.verifier }}</b>
+                </p>
+                <p>
+                    <br>You can manage the permissions you give to third party applications in your settings page.
+                </p>
+            {% endif %}
         {% else %}
             <p>
                 Some error ocurred while granting permission to application <b>{{ token.consumer.name }}</b>.
