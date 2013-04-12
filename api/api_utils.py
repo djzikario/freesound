@@ -39,7 +39,7 @@ class ReturnError(Exception):
         self.extra = extra
 
 
-def build_error_response(e, request):
+def build_error_response(e, request=None):
 
     content = {"error": True,
                "type": e.type,
@@ -50,7 +50,10 @@ def build_error_response(e, request):
     logger.error("%i %s: %s" % (content['status_code'], content['type'], content['explanation']))
 
     response = rc.BAD_REQUEST
-    response_format = request.GET.get("format", "json")
+    if request:
+        response_format = request.GET.get("format", "json")
+    else:
+        response_format = "json"
     em_info = Emitter.get(response_format)
     RequestEmitter = em_info[0]
     emitter = RequestEmitter(content, typemapper, "", "", False)
@@ -65,7 +68,7 @@ def create_unexpected_error(e):
         debug = traceback.format_exc() if settings.DEBUG else str(e)
     else:
         debug = "-"
-    logger.error('500 API error: Unexpected')
+    #logger.error('500 API error: Unexpected')
     return ReturnError(500,
                        "InternalError",
                        {"explanation": "An internal Freesound error ocurred.",

@@ -138,10 +138,11 @@ def initialize_server_request(request):
 
     return oauth_server, oauth_request
 
-def send_oauth_error(err=None):
+def send_oauth_error(err=None, request=None):
     """
     Shortcut for sending an error.
     """
+    '''
     response = HttpResponse(err.message.encode('utf-8'))
     response.status_code = 401
 
@@ -152,18 +153,26 @@ def send_oauth_error(err=None):
         response[k] = v
 
     return response
+    '''
+
+    error = ReturnError(401, "AuthenticationError",
+                        {"explanation": "OAuth authentication failed",
+                         "details": err.message.encode('utf-8')})
+    return build_error_response(error, request)
+
 
 def oauth_request_token(request):
     oauth_server, oauth_request = initialize_server_request(request)
 
     if oauth_server is None:
-        return INVALID_PARAMS_RESPONSE
+        #return INVALID_PARAMS_RESPONSE
+        return send_oauth_error(oauth.OAuthError('Invalid request parameters.'), request)
     try:
         token = oauth_server.fetch_request_token(oauth_request)
 
         response = HttpResponse(token.to_string())
     except oauth.OAuthError, err:
-        response = send_oauth_error(err)
+        response = send_oauth_error(err, request)
 
     return response
 
@@ -183,12 +192,13 @@ def oauth_user_auth(request):
     oauth_server, oauth_request = initialize_server_request(request)
 
     if oauth_request is None:
-        return INVALID_PARAMS_RESPONSE
+        #return INVALID_PARAMS_RESPONSE
+        return send_oauth_error(oauth.OAuthError('Invalid request parameters.'), request)
 
     try:
         token = oauth_server.fetch_request_token(oauth_request)
     except oauth.OAuthError, err:
-        return send_oauth_error(err)
+        return send_oauth_error(err, request)
 
     try:
         callback = oauth_server.get_callback(oauth_request)
@@ -219,7 +229,7 @@ def oauth_user_auth(request):
             response = HttpResponseRedirect(callback+args)
 
         except oauth.OAuthError, err:
-            response = send_oauth_error(err)
+            response = send_oauth_error(err, request)
     else:
         response = HttpResponse('Action not allowed.')
 
@@ -230,13 +240,14 @@ def oauth_access_token(request):
     oauth_server, oauth_request = initialize_server_request(request)
 
     if oauth_request is None:
-        return INVALID_PARAMS_RESPONSE
+        #return INVALID_PARAMS_RESPONSE
+        return send_oauth_error(oauth.OAuthError('Invalid request parameters.'), request)
 
     try:
         token = oauth_server.fetch_access_token(oauth_request, required=True)
         return HttpResponse(token.to_string())
     except oauth.OAuthError, err:
-        return send_oauth_error(err)
+        return send_oauth_error(err, request)
 
 INVALID_PARAMS_RESPONSE = send_oauth_error(oauth.OAuthError('Invalid request parameters.'))
 

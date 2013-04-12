@@ -25,16 +25,6 @@ from handlers import *
 from views import create_api_key
 from api_utils import build_invalid_url, MyKeyAuth
 
-
-## TODO
-## Check error logs to see how they're logged
-## Error messages resurned by oauth during the request token phase (before the acces token is given)
-## Create api downloads table??
-## Does other pin codes also work?
-##  - Apparently the verifier is useless... with any code it works...
-
-
-
 # Key-based authentication resources
 myKeyAuth = MyKeyAuth()
 class KeyAuthentication(Resource):
@@ -98,7 +88,6 @@ urlpatterns = patterns('',
     url(r'^apply/$', create_api_key),
 )
 
-
 # piston, oauth urls
 urlpatterns += patterns(
     'piston.authentication',
@@ -106,7 +95,6 @@ urlpatterns += patterns(
     url(r'^oauth/authorize/$', 'oauth_user_auth'),
     url(r'^oauth/access_token/$', 'oauth_access_token'),
 )
-
 
 # anything else (invalid urls)
 urlpatterns += patterns(
