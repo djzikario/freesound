@@ -20,9 +20,10 @@
     <h3>Your existing keys</h3>
     
     <table>
-    <tr><th>Key</th><th>Application</th><th>Status</th><th>Description</th></tr>
+    <tr><th>Api key</th><th>Consumer key*</th><th>Consumer secret*</th><th>Application</th><th>Status</th><th>Description</th></tr>
     {% for key in user.api_keys.all %}
-        <tr><td>{{ key.key }}</td><td>{{ key.name }}</td><td>{{ key.status }}</td><td>{{ key.description }}</td></tr>
+        <tr><td>{{ key.key }}</td><td>{{ key.consumer.key }}</td><td>{{ key.consumer.secret }}</td><td>{{ key.name }}</td><td>{{ key.status }}</td><td>{{ key.description }}</td></tr>
     {% endfor %}
     </table>
+    <p class="small">* 'Consumer key' and 'Consumer secret' are only needed for special API requests using three-legged authorization. For most of API calls you'll only need 'Api Key'.</p>
 {% endblock %}

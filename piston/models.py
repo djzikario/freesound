@@ -10,6 +10,9 @@ from django.core.mail import send_mail, mail_admins
 from managers import TokenManager, ConsumerManager, ResourceManager
 from signals import consumer_post_save, consumer_post_delete
 
+# Api imports
+from api.models import ApiKey
+
 KEY_SIZE = 8
 SECRET_SIZE = 16
 VERIFIER_SIZE = 10
@@ -42,6 +45,8 @@ class Consumer(models.Model):
 
     status = models.CharField(max_length=16, choices=CONSUMER_STATES, default='pending')
     user = models.ForeignKey(User, null=True, blank=True, related_name='consumers')
+
+    api_key = models.OneToOneField(ApiKey, related_name='consumer')
 
     objects = ConsumerManager()
 

@@ -61,7 +61,10 @@ def build_error_response(e, request):
 
 
 def create_unexpected_error(e):
-    debug = traceback.format_exc() if settings.DEBUG else str(e)
+    if settings.DEBUG:
+        debug = traceback.format_exc() if settings.DEBUG else str(e)
+    else:
+        debug = "-"
     logger.error('500 API error: Unexpected')
     return ReturnError(500,
                        "InternalError",

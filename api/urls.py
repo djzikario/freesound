@@ -32,10 +32,7 @@ from api_utils import build_invalid_url, MyKeyAuth
 ## Create api downloads table??
 ## Does other pin codes also work?
 ##  - Apparently the verifier is useless... with any code it works...
-## Edit api key generation, etc to also create consumer key and secret for 3legged auth
-##  - c = Consumer(name="testname",description="desc", key="tkey", secret="tsec", status="accepted", user=u)
-##  - c.generate_random_codes()
-##  - c.save()
+
 
 
 # Key-based authentication resources
@@ -66,15 +63,18 @@ urlpatterns = patterns('',
     url(r'^sounds/search/$',                                        KeyAuthentication(SoundSearchHandler),         name='api-search'),
     url(r'^sounds/content_search/$',                                KeyAuthentication(SoundContentSearchHandler),  name='api-content-search'),
     url(r'^sounds/(?P<sound_id>\d+)/$',                             KeyAuthentication(SoundHandler),               name='api-single-sound'),
-    url(r'^sounds_2/(?P<sound_id>\d+)/$',                           ThreeLeggedAuth(SoundHandlerTEST),             name='api-single-sound-three-legged'),
     url(r'^sounds/(?P<sound_id>\d+)/analysis/$',                    KeyAuthentication(SoundAnalysisHandler),       name='api-sound-analysis'),
     url(r'^sounds/(?P<sound_id>\d+)/analysis(?P<filter>/[\w\/]+)/$',KeyAuthentication(SoundAnalysisHandler),       name='api-sound-analysis-filtered'),
     # For future use (when we serve analysis files through autenthication)
     #url(r'^sounds/(?P<sound_id>\d+)/analysis_frames/$',            KeyAuthentication(SoundAnalysisFramesHandler), name='api-sound-analysis-frames'),
-    #url(r'^sounds/(?P<sound_id>\d+)/serve/$',                       ThreeLeggedAuth(SoundServeHandler),           name='api-sound-serve'),
+    url(r'^sounds/(?P<sound_id>\d+)/serve/$',                       KeyAuthentication(SoundServeHandler),           name='api-sound-serve'),
     url(r'^sounds/(?P<sound_id>\d+)/similar/$',                     KeyAuthentication(SoundSimilarityHandler),     name='api-sound-similarity'),
     url(r'^sounds/geotag/$',                                        KeyAuthentication(SoundGeotagHandler),         name='api-sound-geotag'),
-    
+
+    # three-legged resources
+    url(r'^sounds_2/(?P<sound_id>\d+)/$',                           ThreeLeggedAuth(SoundHandlerTEST),             name='api-single-sound-three-legged'),
+    url(r'^sounds_2/(?P<sound_id>\d+)/serve/$',                     ThreeLeggedAuth(SoundServeHandler),           name='api-sound-serve-three-legged'),
+
     # users
     url(r'^people/(?P<username>[^//]+)/$',                                                     KeyAuthentication(UserHandler),                    name='api-single-user'),
     url(r'^people/(?P<username>[^//]+)/sounds/$',                                              KeyAuthentication(UserSoundsHandler),              name='api-user-sounds'),

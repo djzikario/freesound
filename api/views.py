@@ -23,7 +23,7 @@ from models import ApiKey
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-from piston.models import Token
+from piston.models import Token, Consumer
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 import datetime
@@ -33,6 +33,7 @@ def create_api_key(request):
     if request.method == 'POST':
         form = ApiKeyForm(request.POST)
         if form.is_valid():
+            # Create ApiKey
             db_api_key = ApiKey()
             db_api_key.user = request.user
             db_api_key.description = form.cleaned_data['description']
@@ -40,6 +41,16 @@ def create_api_key(request):
             db_api_key.url         = form.cleaned_data['url']
             db_api_key.accepted_tos= form.cleaned_data['accepted_tos']
             db_api_key.save()
+
+            # Create consumer (for three-legged auth) and relate it to the created apikey
+            c = Consumer(name=form.cleaned_data['name'],
+                         description=form.cleaned_data['description'],
+                         status="accepted",
+                         user=request.user,
+                         api_key=db_api_key)
+            c.generate_random_codes()
+            c.save()
+
             form = ApiKeyForm()
     else:
         form = ApiKeyForm()
