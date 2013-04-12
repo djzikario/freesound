@@ -14,7 +14,7 @@ from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 
 from api.api_utils import ReturnError, build_error_response, create_unexpected_error
-
+import settings
 from piston import forms
 
 class NoAuthentication(object):
@@ -244,13 +244,12 @@ def oauth_access_token(request):
         return send_oauth_error(oauth.OAuthError('Invalid request parameters.'), request)
 
     try:
-        token = oauth_server.fetch_access_token(oauth_request, required=True)
+        token = oauth_server.fetch_access_token(oauth_request, required=True, mandatory_verifier=settings.VERIFIER_IS_MANDATORY)
         return HttpResponse(token.to_string())
     except oauth.OAuthError, err:
         return send_oauth_error(err, request)
 
-INVALID_PARAMS_RESPONSE = send_oauth_error(oauth.OAuthError('Invalid request parameters.'))
-
+#INVALID_PARAMS_RESPONSE = send_oauth_error(oauth.OAuthError('Invalid request parameters.'))
 
 class OAuthAuthentication(object):
     """

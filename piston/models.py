@@ -15,7 +15,7 @@ from api.models import ApiKey
 
 KEY_SIZE = 8
 SECRET_SIZE = 16
-VERIFIER_SIZE = 10
+VERIFIER_SIZE = 4
 
 CONSUMER_STATES = (
     ('pending', 'Pending'),

@@ -408,7 +408,7 @@ class OAuthServer(object):
             token = self.data_store.fetch_request_token(consumer, callback)
         return token
 
-    def fetch_access_token(self, oauth_request, required=False):
+    def fetch_access_token(self, oauth_request, required=False, mandatory_verifier=False):
         """
         Processes an access_token request and returns the access token on
         success.
@@ -418,9 +418,13 @@ class OAuthServer(object):
 
         # Get the request token.
         token = self._get_token(oauth_request, 'request')
-        verifier = None
-        if token.callback:
+
+        if mandatory_verifier:
             verifier = self._get_verifier(oauth_request)
+        else:
+            verifier = None
+            if token.callback:
+                verifier = self._get_verifier(oauth_request)
         self._check_signature(oauth_request, consumer, token)
 
         new_token = self.data_store.fetch_access_token(consumer, token,
