@@ -4,9 +4,10 @@
 
 # Django settings for freesound project.
 import os
+import datetime
 import logging.config
 
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     # 'django.core.context_processors.auth',
@@ -135,12 +136,13 @@ PACKS_PER_PAGE = 15
 REMIXES_PER_PAGE = 10
 SOUNDS_PER_API_RESPONSE = 30
 MAX_SOUNDS_PER_API_RESPONSE = 100
-SOUNDS_PER_DESCRIBE_ROUND = 4
+SOUNDS_PER_DESCRIBE_ROUND = 10
 USERFLAG_THRESHOLD_FOR_NOTIFICATION = 3
 USERFLAG_THRESHOLD_FOR_AUTOMATIC_BLOCKING = 6
 
 DELETED_USER_ID = 1
 
+LOG_CLICKTHROUGH_DATA = False
 
 DISPLAY_DEBUG_TOOLBAR = False # change this in the local_settings
 
@@ -194,6 +196,7 @@ else:
 # change the media url to tabasco to make the players work when testing
 if DEBUG:
     DATA_URL = "http://freesound.org/data/"
+    #DATA_URL = "/data/"
 else:
     DATA_URL = "/data/"
 
@@ -227,5 +230,11 @@ if DEBUG and DISPLAY_DEBUG_TOOLBAR:
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 ESSENTIA_EXECUTABLE = '/home/fsweb/freesound/essentia/essentia_1.2.2_extractor/streaming_extractor'
+
+# We use the last restart date as a timestamp of the last time freesound web was restarted (lat time
+# settings were loaded). We add this variable to the context processor and use it in base.html as a
+# parameter for the url of all.css and freesound.js files, so me make sure client browsers update these
+# files when we do a deploy (the url changes)
+LAST_RESTART_DATE = datetime.datetime.now().strftime("%d%m")
 
 from logger import LOGGING
