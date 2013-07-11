@@ -442,6 +442,10 @@ class OAuthServer(object):
         # Get the access token.
         token = self._get_token(oauth_request, 'access')
 
+        # Check that the current consumer requesting the data and the consumer of the token are the same
+        if token.consumer.key != consumer.key:
+            raise OAuthError('Token consumer and client consumer do not match!')
+
         if token.is_anonymous():
             # Update consumer
             token.consumer = consumer

@@ -291,6 +291,7 @@ class OAuthAuthentication(object):
                     request.consumer = consumer
                     request.throttle_extra = token.consumer.id
                     request.developer_user = consumer.user
+                    request.app_name = consumer.api_key.name
 
                     return True
                 else:

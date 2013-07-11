@@ -577,7 +577,7 @@ class SoundHandlerTEST(BaseHandler):
         result = prepare_single_sound(sound)
 
         add_request_id(request,result)
-        logger.info("Sound info,id=" + sound_id + ",api_key=" + request.GET.get("api_key", "oauth") + ",api_key_username=" + request.developer_user.username + ",end_user_username=" + request.user.username)
+        logger.info("Sound info,id=" + sound_id + ",api_key=" + request.GET.get("api_key", "oauth") + ",api_key_appname=" + request.app_name + ",end_user_username=" + request.user.username)
         return result
 
 class SoundServeHandler(BaseHandler):

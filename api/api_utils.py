@@ -131,6 +131,7 @@ class MyKeyAuth(object):
                 return False
 
             request.developer_user = db_api_key.user
+            request.app_name = db_api_key.name
             request.username = request.developer_user
             return True
 
